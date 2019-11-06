@@ -74,4 +74,14 @@ void loop() {
   Serial.print(" B = ");
   Serial.println(blueColor);
   delay(100);
+
+  if(redColor > greenColor && redColor > blueColor){
+      Serial.println(" - RED detected!");
+  }
+  if(greenColor > redColor && greenColor > blueColor){
+    Serial.println(" - GREEN detected!");
+  }
+  if(blueColor > redColor && blueColor > greenColor){
+    Serial.println(" - BLUE detected!");
+  }
 }

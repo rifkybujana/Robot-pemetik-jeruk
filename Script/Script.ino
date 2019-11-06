@@ -1,23 +1,19 @@
 /* pin
- * S0 KE DIGITAL PIN 4
- * S1 KE DIGITAL PIN 5
- * VCC KE 5V
- * S3 KE DIGITAL PIN 6
- * S4 KE DIGITAL PIN 7
- * OUT KE DIGITAL PIN 8
- */
- 
+   S0 KE DIGITAL PIN 4
+   S1 KE DIGITAL PIN 5
+   VCC KE 5V
+   S3 KE DIGITAL PIN 6
+   S4 KE DIGITAL PIN 7
+   OUT KE DIGITAL PIN 8
+*/
+
 #define sensorOut 8
 int Sensor[4] = { 4, 5, 6, 7};
 
 int redFrequency, greenFrequency, blueFrequency;
 int warnaJeruk = 0;
 
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  Serial.println("START...");
-
+void colorSetup(){
   //setting output sensor warna
   pinMode(Sensor[0], OUTPUT);
   pinMode(Sensor[1], OUTPUT);
@@ -30,15 +26,81 @@ void setup() {
   //setting frequency sensor warna
   digitalWrite(Sensor[0], HIGH);
   digitalWrite(Sensor[1], LOW);
+}
 
+//////////////////////////////////////////////////////////////////////////
+
+int pwml = 6;
+int pwmr = 9;
+int ml[] = {0, 1};
+int mr[] = {2, 3};
+
+void motorSetup(){
+  pinMode(pwml, OUTPUT);
+  pinMode(pwmr, OUTPUT);
+
+  pinMode(ml[0], OUTPUT);
+  pinMode(ml[1], OUTPUT);
+  pinMode(mr[0], OUTPUT);
+  pinMode(mr[1], OUTPUT);
+}
+
+void kanan() {
+  digitalWrite(pwml, 250);
+  digitalWrite(ml1, HIGH);
+  digitalWrite(ml2, LOW);
+  digitalWrite(pwmr, 250);
+  digitalWrite(mr1, LOW);
+  digitalWrite(mr2, HIGH);
+}
+
+void kiri() {
+  digitalWrite(pwml, 250);
+  digitalWrite(ml1, LOW);
+  digitalWrite(ml2, HIGH);
+  digitalWrite(pwmr, 250);
+  digitalWrite(mr1, HIGH);
+  digitalWrite(mr2, LOW);
+}
+
+void mundur() {
+  digitalWrite(pwml, 250);
+  digitalWrite(ml1, HIGH);
+  digitalWrite(ml2, LOW);
+  digitalWrite(pwmr, 250);
+  digitalWrite(mr1, HIGH);
+  digitalWrite(mr2, LOW);
+}
+
+void maju() {
+  digitalWrite(pwml, 250);
+  digitalWrite(ml1, LOW);
+  digitalWrite(ml2, HIGH);
+  digitalWrite(pwmr, 250);
+  digitalWrite(mr1, LOW);
+  digitalWrite(mr2, HIGH);
+}
+
+void berhenti() {
+  digitalWrite(pwml, 0);
+  digitalWrite(pwmr, 0);
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+void setup() {
   Serial.begin(9600);
+  Serial.println("START...");
+
+  motorSetup();
+  colorSetup();
 }
 
 void loop() {
   getColor();
 }
 
-void getColor(){
+void getColor() {
   // setting red (R)
   digitalWrite(Sensor[2], LOW);
   digitalWrite(Sensor[3], LOW);

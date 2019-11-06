@@ -10,9 +10,8 @@
 int Sensor[4] = { 4, 5, 6, 7};
 #define sensorOut 8
 
-int redFrequency;
-int greenFrequency;
-int blueFrequency;
+int redFrequency, greenFrequency, blueFrequency;
+int redColor, greenColor, blueColor;
 
 void setup() {
   // put your setup code here, to run once:
@@ -46,6 +45,7 @@ void getColor(){
 
   //read red output frequency
   redFrequency = pulseIn(sensorOut, LOW);
+  //redColor = map(redFrequency, minValue, maxValue, 255, 0);
   delay(100);
 
   //setting green (G)
@@ -54,6 +54,7 @@ void getColor(){
 
   //read green output frequency
   greenFrequency = pulseIn(sensorOut, LOW);
+  //greenColor = map(greenFrequency, minValue, maxValue, 255, 0);
   delay(100);
 
   //setting blue (B)
@@ -62,5 +63,6 @@ void getColor(){
 
   //read blue output frequency
   blueFrequency = pulseIn(sensorOut, LOW);
+  //blueColor = map(blueFrequency, minValue, maxValue, 255, 0);
   delay(100);
 }

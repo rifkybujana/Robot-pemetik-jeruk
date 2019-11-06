@@ -1,32 +1,35 @@
-/* pin
-   S0 KE DIGITAL PIN 4
-   S1 KE DIGITAL PIN 5
-   VCC KE 5V
-   S3 KE DIGITAL PIN 6
-   S4 KE DIGITAL PIN 7
-   OUT KE DIGITAL PIN 8
-*/
-
+#define S0 4
+#define S1 5
+#define S2 6
+#define S3 7
 #define sensorOut 8
-int Sensor[4] = { 4, 5, 6, 7};
 
-int redFrequency, greenFrequency, blueFrequency;
-int warnaJeruk = 0;
+// Stores frequency read by the photodiodes
+int redFrequency = 0;
+int greenFrequency = 0;
+int blueFrequency = 0;
+
+// Stores the red. green and blue colors
+int redColor = 0;
+int greenColor = 0;
+int blueColor = 0;
 
 void colorSetup(){
-  //setting output sensor warna
-  pinMode(Sensor[0], OUTPUT);
-  pinMode(Sensor[1], OUTPUT);
-  pinMode(Sensor[2], OUTPUT);
-  pinMode(Sensor[3], OUTPUT);
-
-  //setting sensorOut dari sensor warna sebagai input
+  // Setting the outputs
+  pinMode(S0, OUTPUT);
+  pinMode(S1, OUTPUT);
+  pinMode(S2, OUTPUT);
+  pinMode(S3, OUTPUT);
+  
+  // Setting the sensorOut as an input
   pinMode(sensorOut, INPUT);
-
-  //setting frequency sensor warna
-  digitalWrite(Sensor[0], HIGH);
-  digitalWrite(Sensor[1], LOW);
+  
+  // Setting frequency scaling to 20%
+  digitalWrite(S0,HIGH);
+  digitalWrite(S1,LOW);
 }
+
+bool isJeruk;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -89,11 +92,11 @@ void berhenti() {
 /////////////////////////////////////////////////////////////////////////
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("START...");
-
   motorSetup();
   colorSetup();
+  
+  // Begins serial communication
+  Serial.begin(9600);
 }
 
 void loop() {
@@ -101,30 +104,45 @@ void loop() {
 }
 
 void getColor() {
-  // setting red (R)
-  digitalWrite(Sensor[2], LOW);
-  digitalWrite(Sensor[3], LOW);
-
-  //read red output frequency
+  // Setting RED (R) filtered photodiodes to be read
+  digitalWrite(S2,LOW);
+  digitalWrite(S3,LOW);
+  
+  // Reading the output frequency
   redFrequency = pulseIn(sensorOut, LOW);
-  //redColor = map(redFrequency, minValue, maxValue, 255, 0);
+  // Remaping the value of the RED (R) frequency from 0 to 255
+  redColor = map(redFrequency, 25, 72, 255,0);
+  
+  // Printing the RED (R) value
+  Serial.print("R = ");
+  Serial.print(redColor);
   delay(100);
-
-  //setting green (G)
-  digitalWrite(Sensor[2], HIGH);
-  digitalWrite(Sensor[3], HIGH);
-
-  //read green output frequency
+  
+  // Setting GREEN (G) filtered photodiodes to be read
+  digitalWrite(S2,HIGH);
+  digitalWrite(S3,HIGH);
+  
+  // Reading the output frequency
   greenFrequency = pulseIn(sensorOut, LOW);
-  //greenColor = map(greenFrequency, minValue, maxValue, 255, 0);
+  // Remaping the value of the GREEN (G) frequency from 0 to 255
+   greenColor = map(greenFrequency, 30, 90, 255, 0);
+  
+  // Printing the GREEN (G) value  
+  Serial.print(" G = ");
+  Serial.print(greenColor);
   delay(100);
-
-  //setting blue (B)
-  digitalWrite(Sensor[2], LOW);
-  digitalWrite(Sensor[3], HIGH);
-
-  //read blue output frequency
+ 
+  // Setting BLUE (B) filtered photodiodes to be read
+  digitalWrite(S2,LOW);
+  digitalWrite(S3,HIGH);
+  
+  // Reading the output frequency
   blueFrequency = pulseIn(sensorOut, LOW);
-  //blueColor = map(blueFrequency, minValue, maxValue, 255, 0);
+  // Remaping the value of the BLUE (B) frequency from 0 to 255
+  blueColor = map(blueFrequency, 25, 70, 255, 0);
+  
+  // Printing the BLUE (B) value 
+  Serial.print(" B = ");
+  Serial.print(blueColor);
   delay(100);
 }

@@ -1,25 +1,66 @@
-#include <TCS3200.h>
-#define SERIALREMOTE Serial
-#define BPS 9600
+/* pin
+ * S0 KE DIGITAL PIN 4
+ * S1 KE DIGITAL PIN 5
+ * VCC KE 5V
+ * S3 KE DIGITAL PIN 6
+ * S4 KE DIGITAL PIN 7
+ * OUT KE DIGITAL PIN 8
+ */
 
-TCS3200 color( 4, 5, 6, 2, 3, 7 );
+int Sensor[4] = { 4, 5, 6, 7};
+#define sensorOut 8
+
+int redFrequency;
+int greenFrequency;
+int blueFrequency;
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   Serial.println("START");
-  color.begin();
-  color.nSamples(40);
-  color.setRefreshTime(200);
-  color.setFrequency(TCS3200_FREQ_HI);
 
-  color.loadCal(0);
+  //setting output
+  pinMode(Sensor[0], OUTPUT);
+  pinMode(Sensor[1], OUTPUT);
+  pinMode(Sensor[2], OUTPUT);
+  pinMode(Sensor[3], OUTPUT);
+
+  //setting sensorOut sebagai input
+  pinMode(sensorOut, INPUT);
+
+  //setting frequency
+  digitalWrite(Sensor[0], HIGH);
+  digitalWrite(Sensor[1], LOW);
+
+  Serial.begin(9600);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if(color.onChangeColor()){
-    Serial.println(color.readColorID());
-    Serial.println(color.readColor());
-  }
+  getColor();
+}
+
+void getColor(){
+  // setting red (R)
+  digitalWrite(Sensor[2], LOW);
+  digitalWrite(Sensor[3], LOW);
+
+  //read red output frequency
+  redFrequency = pulseIn(sensorOut, LOW);
+  delay(100);
+
+  //setting green (G)
+  digitalWrite(Sensor[2], HIGH);
+  digitalWrite(Sensor[3], HIGH);
+
+  //read green output frequency
+  greenFrequency = pulseIn(sensorOut, LOW);
+  delay(100);
+
+  //setting blue (B)
+  digitalWrite(Sensor[2], LOW);
+  digitalWrite(Sensor[3], HIGH);
+
+  //read blue output frequency
+  blueFrequency = pulseIn(sensorOut, LOW);
+  delay(100);
 }

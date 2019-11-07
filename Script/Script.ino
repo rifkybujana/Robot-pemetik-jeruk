@@ -14,82 +14,13 @@ int redColor = 0;
 int greenColor = 0;
 int blueColor = 0;
 
-void colorSetup(){
-  // Setting the outputs
-  pinMode(S0, OUTPUT);
-  pinMode(S1, OUTPUT);
-  pinMode(S2, OUTPUT);
-  pinMode(S3, OUTPUT);
-  
-  // Setting the sensorOut as an input
-  pinMode(sensorOut, INPUT);
-  
-  // Setting frequency scaling to 20%
-  digitalWrite(S0,HIGH);
-  digitalWrite(S1,LOW);
-}
-
 bool isJeruk;
-
-//////////////////////////////////////////////////////////////////////////
 
 int pwml = 9;
 int pwmr = 6;
 int ml[] = {0, 1};
 int mr[] = {2, 3};
 
-void motorSetup(){
-  pinMode(pwml, OUTPUT);
-  pinMode(pwmr, OUTPUT);
-
-  pinMode(ml[0], OUTPUT);
-  pinMode(ml[1], OUTPUT);
-  pinMode(mr[0], OUTPUT);
-  pinMode(mr[1], OUTPUT);
-}
-
-void kanan() {
-  digitalWrite(pwml, 250);
-  digitalWrite(ml1, HIGH);
-  digitalWrite(ml2, LOW);
-  digitalWrite(pwmr, 250);
-  digitalWrite(mr1, LOW);
-  digitalWrite(mr2, HIGH);
-}
-
-void kiri() {
-  digitalWrite(pwml, 250);
-  digitalWrite(ml1, LOW);
-  digitalWrite(ml2, HIGH);
-  digitalWrite(pwmr, 250);
-  digitalWrite(mr1, HIGH);
-  digitalWrite(mr2, LOW);
-}
-
-void mundur() {
-  digitalWrite(pwml, 250);
-  digitalWrite(ml1, HIGH);
-  digitalWrite(ml2, LOW);
-  digitalWrite(pwmr, 250);
-  digitalWrite(mr1, HIGH);
-  digitalWrite(mr2, LOW);
-}
-
-void maju() {
-  digitalWrite(pwml, 250);
-  digitalWrite(ml1, LOW);
-  digitalWrite(ml2, HIGH);
-  digitalWrite(pwmr, 250);
-  digitalWrite(mr1, LOW);
-  digitalWrite(mr2, HIGH);
-}
-
-void berhenti() {
-  digitalWrite(pwml, 0);
-  digitalWrite(pwmr, 0);
-}
-
-/////////////////////////////////////////////////////////////////////////
 
 void setup() {
   motorSetup();
@@ -145,4 +76,70 @@ void getColor() {
   Serial.print(" B = ");
   Serial.print(blueColor);
   delay(100);
+}
+
+void colorSetup(){
+  // Setting the outputs
+  pinMode(S0, OUTPUT);
+  pinMode(S1, OUTPUT);
+  pinMode(S2, OUTPUT);
+  pinMode(S3, OUTPUT);
+  
+  // Setting the sensorOut as an input
+  pinMode(sensorOut, INPUT);
+  
+  // Setting frequency scaling to 20%
+  digitalWrite(S0,HIGH);
+  digitalWrite(S1,LOW);
+}
+
+void motorSetup(){
+  pinMode(pwml, OUTPUT);
+  pinMode(pwmr, OUTPUT);
+
+  pinMode(ml[0], OUTPUT);
+  pinMode(ml[1], OUTPUT);
+  pinMode(mr[0], OUTPUT);
+  pinMode(mr[1], OUTPUT);
+}
+
+void kanan() {
+  digitalWrite(pwml, 250);
+  digitalWrite(ml1, HIGH);
+  digitalWrite(ml2, LOW);
+  digitalWrite(pwmr, 250);
+  digitalWrite(mr1, LOW);
+  digitalWrite(mr2, HIGH);
+}
+
+void kiri() {
+  digitalWrite(pwml, 250);
+  digitalWrite(ml1, LOW);
+  digitalWrite(ml2, HIGH);
+  digitalWrite(pwmr, 250);
+  digitalWrite(mr1, HIGH);
+  digitalWrite(mr2, LOW);
+}
+
+void mundur() {
+  digitalWrite(pwml, 250);
+  digitalWrite(ml1, HIGH);
+  digitalWrite(ml2, LOW);
+  digitalWrite(pwmr, 250);
+  digitalWrite(mr1, HIGH);
+  digitalWrite(mr2, LOW);
+}
+
+void maju() {
+  digitalWrite(pwml, 250);
+  digitalWrite(ml1, LOW);
+  digitalWrite(ml2, HIGH);
+  digitalWrite(pwmr, 250);
+  digitalWrite(mr1, LOW);
+  digitalWrite(mr2, HIGH);
+}
+
+void berhenti() {
+  digitalWrite(pwml, 0);
+  digitalWrite(pwmr, 0);
 }

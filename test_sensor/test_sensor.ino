@@ -40,7 +40,7 @@ void loop() {
   // Reading the output frequency
   redFrequency = pulseIn(sensorOut, LOW);
   // Remaping the value of the RED (R) frequency from 0 to 255
-  redColor = map(redFrequency, 232, 8331, 255,0);
+  redColor = map(redFrequency, 65, 762, 255,0);
   
   // Printing the RED (R) value
   Serial.print("R = ");
@@ -54,7 +54,7 @@ void loop() {
   // Reading the output frequency
   greenFrequency = pulseIn(sensorOut, LOW);
   // Remaping the value of the GREEN (G) frequency from 0 to 255
-  greenColor = map(greenFrequency, 75, 12038, 255, 0);
+  greenColor = map(greenFrequency, 108, 2054, 255, 0);
   
   // Printing the GREEN (G) value  
   Serial.print(" G = ");
@@ -64,24 +64,17 @@ void loop() {
   // Setting BLUE (B) filtered photodiodes to be read
   digitalWrite(S2,LOW);
   digitalWrite(S3,HIGH);
+
+  //R = 65 G = 108 B = 96
+  //R = 762 G = 2054 B = 879
   
   // Reading the output frequency
   blueFrequency = pulseIn(sensorOut, LOW);
   // Remaping the value of the BLUE (B) frequency from 0 to 255
-  blueColor = map(blueFrequency, 241, 13870, 255, 0);
+  blueColor = map(blueFrequency, 96, 879, 255, 0);
   
   // Printing the BLUE (B) value 
   Serial.print(" B = ");
   Serial.println(blueColor);
   delay(100);
-
-  if(redColor > greenColor && redColor > blueColor){
-      Serial.println(" - RED detected!");
-  }
-  if(greenColor > redColor && greenColor > blueColor){
-    Serial.println(" - GREEN detected!");
-  }
-  if(blueColor > redColor && blueColor > greenColor){
-    Serial.println(" - BLUE detected!");
-  }
 }

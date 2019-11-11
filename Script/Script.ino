@@ -14,8 +14,8 @@ int redColor = 0;
 int greenColor = 0;
 int blueColor = 0;
 
-int RGBJeruk[3] = {0,0,0};
-int radiusJeruk = 10;
+int RGBJeruk[3] = {176, 208, 81};
+int radiusJeruk = 20;
 
 bool isJeruk;
 

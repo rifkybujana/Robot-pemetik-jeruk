@@ -54,6 +54,7 @@ long distance[4] = {0,0,0,0};
 
 int arahPohon;
 bool stopMaju;
+bool outOfRange[4] = {false,false,false,false};
 
 void setup() {
   pinMode(echoPin1, INPUT);
@@ -84,9 +85,14 @@ void loop() {
   getRange();
 
   if(isJeruk){
+    berhenti();
+    delay(300);
     guntingBuka(false);
+    delay(1500);
+    guntingBuka(true);
   }else{
     guntingBuka(true);
+    maju();
   }
 
   /*  1 maju
@@ -94,41 +100,61 @@ void loop() {
    *  3 kiri
    *  4 mundur
    */
-  switch(arahPohon){
-    case 0:
-      berhenti();
-      break;
-    case 1:
-      if(stopMaju == false){
-        maju();
-      }else{
-        berhenti();
-      }
-      break;
-    case 2:
-      if(stopMaju == false){
-        kanan();
-      }else{
-        berhenti();
-      }
-      break;
-    case 3:
-      if(stopMaju == false){
-        kiri();
-      }else{
-        berhenti();
-      }
-      break;
-    case 4:
-      if(stopMaju == false){
-        mundur();
-      }else{
-        berhenti();
-      }
-      break;
-    default:
-      berhenti();
-      break;
+
+  if(arahPohon == 1){
+    maju();
+
+    if(stopMaju){
+      kiri();
+      delay(300);
+      maju();
+    }
+
+    if(outOfRange[0] == true){
+      arahPohon = 0;
+    }
+  }else if(arahPohon == 2){
+    kanan();
+    delay(300);
+    maju();
+
+    if(stopMaju){
+      kiri();
+      delay(300);
+      maju();
+    }
+
+    if(outOfRange[1] == true){
+      arahPohon = 0;
+    }
+  }else if(arahPohon == 3){
+    kiri();
+    delay(300);
+    maju();
+
+    if(stopMaju){
+      kiri();
+      delay(300);
+      maju();
+    }
+
+    if(outOfRange[2] == true){
+      arahPohon = 0;
+    }
+  }else if(arahPohon == 4){
+    mundur();
+
+    if(stopMaju){
+      kanan();
+      delay(300);
+      maju();
+    }
+
+    if(outOfRange[3] == true){
+      arahPohon = 0;
+    }
+  }else if(arahPohon == 0){
+    berhenti();
   }
 }
 
@@ -161,6 +187,8 @@ void getRange(){  // S = 340.t/2
     if(distance[i] <= maxRange && distance[i] > minRange){
       arahPohon = i + 1;
       stopMaju = false;
+    }else if(distance[i] > maxRange){
+      outOfRange[i] = true;
     }else{
       stopMaju = true;
     }

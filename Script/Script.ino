@@ -25,14 +25,12 @@ int ml[] = {0, 1};
 int mr[] = {2, 3};
 
 #include <Servo.h>
-Servo guntingServo1;
-Servo guntingServo2;
+Servo guntingServo;
 Servo servoPenekan;
 
-int guntingPos1 = 0;
-int guntingPos2 = 180;
+int guntingPos = 0;
 
-int servoGunting[2] = {11,12};
+int servoGunting = 11;
 int servoPenekanPin = 13;
 
 #define echoPin1 14
@@ -73,6 +71,7 @@ void setup() {
   
   motorSetup();
   colorSetup();
+  guntingSetup();
   
   // Begins serial communication
   Serial.begin(9600);
@@ -88,11 +87,8 @@ void loop() {
     berhenti();
     delay(300);
     guntingBuka(false);
-    delay(1500);
+    delay(1000);
     guntingBuka(true);
-  }else{
-    guntingBuka(true);
-    maju();
   }
 
   /*  1 maju
@@ -323,30 +319,13 @@ void berhenti() {
 }
 
 void guntingSetup(){
-  guntingServo1.attach(servoGunting[0]);
-  guntingServo2.attach(servoGunting[1]);
+  guntingServo.attach(servoGunting);
 }
 
 void guntingBuka(bool tutup){
   if(tutup){
-    for(guntingPos1 = 0; guntingPos1 <= 180; guntingPos1++){
-      guntingServo1.write(guntingPos1);
-      delay(10);
-    }
-
-    for(guntingPos2 = 180; guntingPos2 >= 0; guntingPos2--){
-      guntingServo2.write(guntingPos2);
-      delay(10);
-    }
+    guntingServo.write(180);
   }else{
-    for(guntingPos1 = 180; guntingPos1 >= 0; guntingPos1--){
-      guntingServo1.write(guntingPos1);
-      delay(10);
-    }
-
-    for(guntingPos2 = 0; guntingPos2 <= 180; guntingPos2++){
-      guntingServo2.write(guntingPos2);
-      delay(10);
-    }
+    guntingServo.write(0);
   }
 }

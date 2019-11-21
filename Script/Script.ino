@@ -1,3 +1,4 @@
+//color sensor pin
 #define S0 4
 #define S1 5
 #define S2 6
@@ -14,260 +15,285 @@ int redColor = 0;
 int greenColor = 0;
 int blueColor = 0;
 
+// Radius color of orange
 int RGBJeruk[3] = {176, 208, 81};
-int radiusJeruk = 20;
+int radiusJeruk = 30;
 
+// its orange?
 bool isJeruk;
 
+// Motor driver pin
 int pwml = 9;
 int pwmr = 10;
 int ml[] = {0, 1};
 int mr[] = {2, 3};
 
+// Servo Lybrary
 #include <Servo.h>
 Servo guntingServo;
 Servo servoPenekan;
 
+// Position of the servo for cutting the orange
 int guntingPos = 0;
 
+// Servo pin
 int servoGunting = 11;
 int servoPenekanPin = 13;
 
+// Pin sensor jarak depan
 #define echoPin1 14
 #define trigPin1 15
 
+// Pin sensor jarak kanan
 #define echoPin2 16
 #define trigPin2 17
 
+// Pin sensor jarak kiri
 #define echoPin3 18
 #define trigPin3 19
 
+// Pin sensor jarak belakang
 #define echoPin4 20
 #define trigPin4 21
 
+// Radius jarak maksimal yang dideteksi sebagai "Pohon/benda"
 int maxRange = 300;
+// Radius jarak minimal yang dideteksi sebagai "Pohon/benda" agar tidak terjadi benturan
 int minRange = 20;
-long duration[4] = {0,0,0,0};
-long distance[4] = {0,0,0,0};
+// Gelombang yang dikirim dan diterima oleh sensor
+long duration[4] = {0, 0, 0, 0};
+// Hasil perhitungan jarak berdasarkan hasil penerimaan gelombang oleh sensor
+long distance[4] = {0, 0, 0, 0};
 
+/* menentukan arah pohon (
+      1 maju
+      2 kanan
+      3 kiri
+      4 mundur                   */
 int arahPohon;
-bool stopMaju;
-bool outOfRange[4] = {false,false,false,false};
 
-void setup() {
+// berhenti maju?
+bool stopMaju;
+
+// diluar jangkauan?
+bool outOfRange[4] = {false, false, false, false};
+// ada objek di kanan?
+bool objekDikanan = false;
+
+void setup() { //setting up all the pins, default output, etc
   pinMode(echoPin1, INPUT);
   pinMode(trigPin1, OUTPUT);
-  
+
   pinMode(echoPin2, INPUT);
   pinMode(trigPin2, OUTPUT);
-  
+
   pinMode(echoPin3, INPUT);
   pinMode(trigPin3, OUTPUT);
-  
+
   pinMode(echoPin4, INPUT);
   pinMode(trigPin4, OUTPUT);
-  
+
   servoPenekan.attach(servoPenekanPin);
-  
+
   motorSetup();
   colorSetup();
   guntingSetup();
-  
+
   // Begins serial communication
   Serial.begin(9600);
 
+  // reset servo position
   servoPenekan.write(0);
 }
 
 void loop() {
+  // get the data from the color sensor
   getColor();
+  // get the data from the range sensor
   getRange();
 
-  if(isJeruk){
+  // jika mendeteksi jeruk
+  if (isJeruk) {
+    // berhenti
     berhenti();
+    // delay 0.3 detik
     delay(300);
+    // membuka mulut gunting
     guntingBuka(false);
+    // delay 1 detik
     delay(1000);
+    // menutup mulut gunting
     guntingBuka(true);
   }
 
   /*  1 maju
-   *  2 kanan
-   *  3 kiri
-   *  4 mundur
-   */
+      2 kanan
+      3 kiri
+      4 mundur
+  */
 
-  if(arahPohon == 1){
+  // jika pohon terdeteksi di depan
+  if (arahPohon == 1) {
+    // maju
     maju();
 
-    if(stopMaju){
+    // jika sudah tidak terdeteksi pohon dari setiap sensor
+    if (stopMaju) {
+      //
       kiri();
-      delay(300);
-      maju();
     }
-
-    if(outOfRange[0] == true){
-      arahPohon = 0;
-    }
-  }else if(arahPohon == 2){
+  } else if (arahPohon == 2) {
     kanan();
     delay(300);
     maju();
 
-    if(stopMaju){
+    if (stopMaju) {
       kiri();
       delay(300);
       maju();
     }
-
-    if(outOfRange[1] == true){
-      arahPohon = 0;
-    }
-  }else if(arahPohon == 3){
+  } else if (arahPohon == 3) {
     kiri();
     delay(300);
     maju();
 
-    if(stopMaju){
+    if (stopMaju) {
       kiri();
-      delay(300);
-      maju();
     }
-
-    if(outOfRange[2] == true){
-      arahPohon = 0;
-    }
-  }else if(arahPohon == 4){
+  } else if (arahPohon == 4) {
     mundur();
 
-    if(stopMaju){
+    if (stopMaju) {
       kanan();
-      delay(300);
-      maju();
     }
-
-    if(outOfRange[3] == true){
-      arahPohon = 0;
-    }
-  }else if(arahPohon == 0){
+  } else if (objekDiKanan) {
+    maju();
+  } else if (!objekDiKanan) {
+    berhenti();
+  } else if (arahPohon == 0 || !objekDiKanan) {
     berhenti();
   }
 }
 
-void getRange(){  // S = 340.t/2
+void getRange() { // S = 340.t/2
   digitalWrite(trigPin1, LOW); delayMicroseconds(2);
   digitalWrite(trigPin1, HIGH); delayMicroseconds(10);
   digitalWrite(trigPin1, LOW);
   duration[0] = pulseIn(echoPin1, HIGH);
-  distance[0] = duration[0]/58.2;
+  distance[0] = duration[0] / 58.2;
 
   digitalWrite(trigPin2, LOW); delayMicroseconds(2);
   digitalWrite(trigPin2, HIGH); delayMicroseconds(10);
   digitalWrite(trigPin2, LOW);
   duration[1] = pulseIn(echoPin2, HIGH);
-  distance[1] = duration[1]/58.2;
+  distance[1] = duration[1] / 58.2;
 
   digitalWrite(trigPin3, LOW); delayMicroseconds(2);
   digitalWrite(trigPin3, HIGH); delayMicroseconds(10);
   digitalWrite(trigPin3, LOW);
   duration[2] = pulseIn(echoPin3, HIGH);
-  distance[2] = duration[2]/58.2;
+  distance[2] = duration[2] / 58.2;
 
   digitalWrite(trigPin4, LOW); delayMicroseconds(2);
   digitalWrite(trigPin4, HIGH); delayMicroseconds(10);
   digitalWrite(trigPin4, LOW);
   duration[3] = pulseIn(echoPin4, HIGH);
-  distance[3] = duration[3]/58.2;
+  distance[3] = duration[3] / 58.2;
 
-  for(int i = 0; i <= 3; i++){
-    if(distance[i] <= maxRange && distance[i] > minRange){
+  for (int i = 0; i <= 3; i++) {
+    if (distance[i] <= maxRange && distance[i] > minRange) {
       arahPohon = i + 1;
       stopMaju = false;
-    }else if(distance[i] > maxRange){
+    } else if (distance[i] > maxRange) {
       outOfRange[i] = true;
-    }else{
       stopMaju = true;
     }
+  }
+
+  if (distance[1] <= minRange) {
+    objekDiKanan = true;
+  } else {
+    objekDiKanan = false;
   }
 }
 
 void getColor() {
   // Setting RED (R) filtered photodiodes to be read
-  digitalWrite(S2,LOW);
-  digitalWrite(S3,LOW);
-  
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, LOW);
+
   // Reading the output frequency
   redFrequency = pulseIn(sensorOut, LOW);
   // Remaping the value of the RED (R) frequency from 0 to 255
-  redColor = map(redFrequency, 65, 762, 255,0);
-  
+  redColor = map(redFrequency, 65, 762, 255, 0);
+
   // Printing the RED (R) value
   Serial.print("R = ");
   Serial.print(redColor);
   delay(100);
-  
+
   // Setting GREEN (G) filtered photodiodes to be read
-  digitalWrite(S2,HIGH);
-  digitalWrite(S3,HIGH);
-  
+  digitalWrite(S2, HIGH);
+  digitalWrite(S3, HIGH);
+
   // Reading the output frequency
   greenFrequency = pulseIn(sensorOut, LOW);
   // Remaping the value of the GREEN (G) frequency from 0 to 255
   greenColor = map(greenFrequency, 108, 2054, 255, 0);
-  
-  // Printing the GREEN (G) value  
+
+  // Printing the GREEN (G) value
   Serial.print(" G = ");
   Serial.print(greenColor);
   delay(100);
- 
+
   // Setting BLUE (B) filtered photodiodes to be read
-  digitalWrite(S2,LOW);
-  digitalWrite(S3,HIGH);
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, HIGH);
 
   //R = 65 G = 108 B = 96
   //R = 762 G = 2054 B = 879
-  
+
   // Reading the output frequency
   blueFrequency = pulseIn(sensorOut, LOW);
   // Remaping the value of the BLUE (B) frequency from 0 to 255
   blueColor = map(blueFrequency, 96, 879, 255, 0);
-  
-  // Printing the BLUE (B) value 
+
+  // Printing the BLUE (B) value
   Serial.print(" B = ");
   Serial.println(blueColor);
   delay(100);
 
-  if(redColor > RGBJeruk[0] - radiusJeruk && redColor < RGBJeruk[0] + radiusJeruk){
-    if(greenColor > RGBJeruk[1] - radiusJeruk && greenColor < RGBJeruk[1] + radiusJeruk){
-      if(blueColor > RGBJeruk[2] - radiusJeruk && greenColor < RGBJeruk[2] + radiusJeruk){
+  if (redColor > RGBJeruk[0] - radiusJeruk && redColor < RGBJeruk[0] + radiusJeruk) {
+    if (greenColor > RGBJeruk[1] - radiusJeruk && greenColor < RGBJeruk[1] + radiusJeruk) {
+      if (blueColor > RGBJeruk[2] - radiusJeruk && greenColor < RGBJeruk[2] + radiusJeruk) {
         isJeruk = true;
-      }else{
+      } else {
         isJeruk = false;
       }
-    }else{
+    } else {
       isJeruk = false;
     }
-  }else{
+  } else {
     isJeruk = false;
   }
 }
 
-void colorSetup(){
+void colorSetup() {
   // Setting the outputs
   pinMode(S0, OUTPUT);
   pinMode(S1, OUTPUT);
   pinMode(S2, OUTPUT);
   pinMode(S3, OUTPUT);
-  
+
   // Setting the sensorOut as an input
   pinMode(sensorOut, INPUT);
-  
+
   // Setting frequency scaling to 20%
-  digitalWrite(S0,HIGH);
-  digitalWrite(S1,LOW);
+  digitalWrite(S0, HIGH);
+  digitalWrite(S1, LOW);
 }
 
-void motorSetup(){
+void motorSetup() {
   pinMode(pwml, OUTPUT);
   pinMode(pwmr, OUTPUT);
 
@@ -318,14 +344,14 @@ void berhenti() {
   digitalWrite(pwmr, 0);
 }
 
-void guntingSetup(){
+void guntingSetup() {
   guntingServo.attach(servoGunting);
 }
 
-void guntingBuka(bool tutup){
-  if(tutup){
+void guntingBuka(bool tutup) {
+  if (tutup) {
     guntingServo.write(180);
-  }else{
+  } else {
     guntingServo.write(0);
   }
 }

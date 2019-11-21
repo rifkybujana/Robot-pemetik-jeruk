@@ -45,8 +45,8 @@ int servoPenekanPin = 13;
 #define echoPin4 20
 #define trigPin4 21
 
-int maxRange = 500;
-int minRange = 50;
+int maxRange = 300;
+int minRange = 20;
 long duration[4] = {0,0,0,0};
 long distance[4] = {0,0,0,0};
 

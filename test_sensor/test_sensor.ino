@@ -44,7 +44,8 @@ void loop() {
   
   // Printing the RED (R) value
   Serial.print("R = ");
-  Serial.print(redColor);
+  Serial.print(redFrequency);
+  //Serial.print(redColor);
   delay(100);
   
   // Setting GREEN (G) filtered photodiodes to be read
@@ -58,7 +59,8 @@ void loop() {
   
   // Printing the GREEN (G) value  
   Serial.print(" G = ");
-  Serial.print(greenColor);
+  Serial.print(greenFrequency);
+  //Serial.print(greenColor);
   delay(100);
  
   // Setting BLUE (B) filtered photodiodes to be read
@@ -75,6 +77,7 @@ void loop() {
   
   // Printing the BLUE (B) value 
   Serial.print(" B = ");
-  Serial.println(blueColor);
+  Serial.println(blueFrequency);
+  //Serial.println(blueColor);
   delay(100);
 }

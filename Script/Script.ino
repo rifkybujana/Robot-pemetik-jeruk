@@ -1,3 +1,11 @@
+//              //       //     _________                  ________      _______
+//             //       //          |          /\         /             /       \
+//          ==//=======//==         |         /  \       |             |         |
+//           //       //            |        /    \      |  ______     |         |
+//          //       //    |        |       /------\     |        \    |         |
+//       ==//=======//==    \       |      /        \    |         |   |         |
+//        //       //        \_____/      /          \    \_______/     \_______/
+
 //color sensor pin
 #define S0 4
 #define S1 5
@@ -23,22 +31,44 @@ int radiusJeruk = 30;
 bool isJeruk;
 
 // Motor driver pin
-int pwml = 9;
-int pwmr = 10;
-int ml[] = {0, 1};
-int mr[] = {2, 3};
+#define BRAKE 0
+#define CW    1
+#define CCW   2
+#define CS_THRESHOLD 15
+
+#define MOTOR_A1_PIN_1 22 //INA
+#define MOTOR_B1_PIN_1 23 //INB
+#define PWM_MOTOR_1 24    //PMW
+#define CURRENT_SEN_1 A3  //CS
+#define EN_PIN_1 A0       //EN
+#define MOTOR_1 0
+
+#define MOTOR_A1_PIN_2 25 //INA
+#define MOTOR_B1_PIN_2 26 //INB
+#define PWM_MOTOR_2 27    //PMW
+#define CURRENT_SEN_2 A4  //CS
+#define EN_PIN_2 A1       //EN
+#define MOTOR_2 1
+
+#define MOTOR_A1_PIN_3 28 //INA
+#define MOTOR_B1_PIN_3 29 //INB
+#define PWM_MOTOR_3 30    //PMW
+#define CURRENT_SEN_3 A5  //CS
+#define EN_PIN_3 A2       //EN
+#define MOTOR_3 2
+
+short usSpeed = 150;  //default motor speed
+unsigned short usMotor_Status = BRAKE;
 
 // Servo Lybrary
 #include <Servo.h>
 Servo guntingServo;
-Servo servoPenekan;
 
 // Position of the servo for cutting the orange
 int guntingPos = 0;
 
 // Servo pin
 int servoGunting = 11;
-int servoPenekanPin = 13;
 
 // Pin sensor jarak depan
 #define echoPin1 14
@@ -69,16 +99,12 @@ long distance[4] = {0, 0, 0, 0};
       1 maju
       2 kanan
       3 kiri
-      4 mundur                   */
+      4 mundur   */
 int arahPohon;
 
-// berhenti maju?
-bool stopMaju;
-
-// diluar jangkauan?
-bool outOfRange[4] = {false, false, false, false};
-// ada objek di kanan?
-bool objekDikanan = false;
+bool stopMaju;                                                    // berhenti maju?
+bool outOfRange[4] = {false, false, false, false};                // diluar jangkauan?
+bool objekDiKanan = false;                                        // ada objek di kanan?
 
 void setup() { //setting up all the pins, default output, etc
   pinMode(echoPin1, INPUT);
@@ -93,85 +119,53 @@ void setup() { //setting up all the pins, default output, etc
   pinMode(echoPin4, INPUT);
   pinMode(trigPin4, OUTPUT);
 
-  servoPenekan.attach(servoPenekanPin);
-
   motorSetup();
   colorSetup();
   guntingSetup();
 
   // Begins serial communication
   Serial.begin(9600);
-
-  // reset servo position
-  servoPenekan.write(0);
 }
 
 void loop() {
-  // get the data from the color sensor
-  getColor();
-  // get the data from the range sensor
-  getRange();
-
-  // jika mendeteksi jeruk
-  if (isJeruk) {
-    // berhenti
-    berhenti();
-    // delay 0.3 detik
-    delay(300);
-    // membuka mulut gunting
-    guntingBuka(false);
-    // delay 1 detik
-    delay(1000);
-    // menutup mulut gunting
-    guntingBuka(true);
-  }
-
+  getColor();                               // get the data from the color sensor
+  getRange();                               // get the data from the range sensor
+  digitalWrite(EN_PIN_1, HIGH);
+  
   /*  1 maju
       2 kanan
       3 kiri
       4 mundur
   */
 
-  // jika pohon terdeteksi di depan
-  if (arahPohon == 1) {
-    // maju
-    maju();
-
-    // jika sudah tidak terdeteksi pohon dari setiap sensor
-    if (stopMaju) {
-      //
-      kiri();
-    }
-  } else if (arahPohon == 2) {
-    kanan();
-    delay(300);
-    maju();
-
-    if (stopMaju) {
-      kiri();
-      delay(300);
+  switch(arahPohon){
+    case 1: 
       maju();
-    }
-  } else if (arahPohon == 3) {
-    kiri();
-    delay(300);
-    maju();
+      if (stopMaju) { kiri(); } break;
+    case 2:          
+      kanan(); delay(300); maju();
+      if (stopMaju) { kiri(); } break;
+    case 3:
+      kiri(); delay(300); maju(); 
+      if (stopMaju) { kiri(); } break;
+    case 4:
+      mundur(); 
+      if (stopMaju) { kanan(); } break;
+    default: berhenti();
+  }
 
-    if (stopMaju) {
-      kiri();
-    }
-  } else if (arahPohon == 4) {
-    mundur();
-
-    if (stopMaju) {
-      kanan();
-    }
-  } else if (objekDiKanan) {
+  if (objekDiKanan) {
     maju();
   } else if (!objekDiKanan) {
     berhenti();
-  } else if (arahPohon == 0 || !objekDiKanan) {
-    berhenti();
+  } 
+
+  if (isJeruk) {                      // jika mendeteksi jeruk
+    berhenti();                       // berhenti
+    delay(300);                       // delay 0.3 detik
+    guntingBuka(false);               // membuka mulut gunting
+    delay(1000);                      // delay 1 detik
+    guntingBuka(true);                // menutup mulut gunting
   }
 }
 
@@ -294,54 +288,92 @@ void colorSetup() {
 }
 
 void motorSetup() {
-  pinMode(pwml, OUTPUT);
-  pinMode(pwmr, OUTPUT);
-
-  pinMode(ml[0], OUTPUT);
-  pinMode(ml[1], OUTPUT);
-  pinMode(mr[0], OUTPUT);
-  pinMode(mr[1], OUTPUT);
+  pinMode(MOTOR_A1_PIN1, OUTPUT);
+  pinMode(MOTOR_B1_PIN1, OUTPUT);
+  pinMode(PWM_MOTOR_1, OUTPUT);
+  pinMode(CURRENT_SEN_1, OUTPUT);
+  pinMode(EN_PIN_1, OUTPUT);
+  
+  pinMode(MOTOR_A1_PIN2, OUTPUT);
+  pinMode(MOTOR_B1_PIN2, OUTPUT);
+  pinMode(PWM_MOTOR_2, OUTPUT);
+  pinMode(CURRENT_SEN_2, OUTPUT);
+  pinMode(EN_PIN_2, OUTPUT);
+  
+  pinMode(MOTOR_A1_PIN3, OUTPUT);
+  pinMode(MOTOR_B1_PIN3, OUTPUT);
+  pinMode(PWM_MOTOR_3, OUTPUT);
+  pinMode(CURRENT_SEN_3, OUTPUT);
+  pinMode(EN_PIN_3, OUTPUT);
 }
 
 void kanan() {
-  digitalWrite(pwml, 250);
-  digitalWrite(ml[0], HIGH);
-  digitalWrite(ml[1], LOW);
-  digitalWrite(pwmr, 250);
-  digitalWrite(mr[0], LOW);
-  digitalWrite(mr[1], HIGH);
+  motorGo(MOTOR_1, BRAKE, usSpeed);
+  motorGo(MOTOR_2, CW, usSpeed);
 }
 
 void kiri() {
-  digitalWrite(pwml, 250);
-  digitalWrite(ml[0], LOW);
-  digitalWrite(ml[1], HIGH);
-  digitalWrite(pwmr, 250);
-  digitalWrite(mr[0], HIGH);
-  digitalWrite(mr[1], LOW);
+  motorGo(MOTOR_1, CW, usSpeed);
+  motorGo(MOTOR_2, BRAKE, usSpeed);
 }
 
 void mundur() {
-  digitalWrite(pwml, 250);
-  digitalWrite(ml[0], HIGH);
-  digitalWrite(ml[1], LOW);
-  digitalWrite(pwmr, 250);
-  digitalWrite(mr[0], HIGH);
-  digitalWrite(mr[1], LOW);
+  motorGo(MOTOR_1, CCW, usSpeed);
+  motorGo(MOTOR_2, CCW, usSpeed);
 }
 
 void maju() {
-  digitalWrite(pwml, 250);
-  digitalWrite(ml[0], LOW);
-  digitalWrite(ml[1], HIGH);
-  digitalWrite(pwmr, 250);
-  digitalWrite(mr[0], LOW);
-  digitalWrite(mr[1], HIGH);
+  motorGo(MOTOR_1, CW, usSpeed);
+  motorGo(MOTOR_2, CW, usSpeed);
 }
 
 void berhenti() {
-  digitalWrite(pwml, 0);
-  digitalWrite(pwmr, 0);
+  motorGo(MOTOR_1, BRAKE, 0);
+  motorGo(MOTOR_2, BRAKE, 0);
+}
+
+void motorGo(uint8_t motor, uint8_t direct, uint8_t pwm)         //Function that controls the variables: motor(0 ou 1), direction (cw ou ccw) e pwm (entra 0 e 255);
+{
+  switch(motor){
+    case MOTOR_1:
+      if(direct == CW) {
+        digitalWrite(MOTOR_A1_PIN1, LOW); 
+        digitalWrite(MOTOR_B1_PIN1, HIGH);
+      } else if(direct == CCW) {
+        digitalWrite(MOTOR_A1_PIN1, HIGH);
+        digitalWrite(MOTOR_B1_PIN1, LOW);      
+      } else {
+        digitalWrite(MOTOR_A1_PIN1, LOW);
+        digitalWrite(MOTOR_B1_PIN1, LOW);            
+      }
+      analogWrite(PWM_MOTOR_1, pwm); 
+      break;
+    case MOTOR_2:
+      if(direct == CW) {
+        digitalWrite(MOTOR_A1_PIN2, LOW); 
+        digitalWrite(MOTOR_B1_PIN2, HIGH);
+      } else if(direct == CCW) {
+        digitalWrite(MOTOR_A1_PIN2, HIGH);
+        digitalWrite(MOTOR_B1_PIN2, LOW);      
+      } else {
+        digitalWrite(MOTOR_A1_PIN2, LOW);
+        digitalWrite(MOTOR_B1_PIN2, LOW);            
+      }
+      analogWrite(PWM_MOTOR_2, pwm); 
+      break;
+    case MOTOR_3:
+      if(direct == CW) {
+        digitalWrite(MOTOR_A1_PIN3, LOW); 
+        digitalWrite(MOTOR_B1_PIN3, HIGH);
+      } else if(direct == CCW) {
+        digitalWrite(MOTOR_A1_PIN3, HIGH);
+        digitalWrite(MOTOR_B1_PIN3, LOW);      
+      } else {
+        digitalWrite(MOTOR_A1_PIN3, LOW);
+        digitalWrite(MOTOR_B1_PIN3, LOW);            
+      }
+      analogWrite(PWM_MOTOR_3, pwm); 
+      break;
 }
 
 void guntingSetup() {

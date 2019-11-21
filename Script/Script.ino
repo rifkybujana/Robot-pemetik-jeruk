@@ -106,6 +106,20 @@ bool stopMaju;                                                    // berhenti ma
 bool outOfRange[4] = {false, false, false, false};                // diluar jangkauan?
 bool objekDiKanan = false;                                        // ada objek di kanan?
 
+
+
+void guntingSetup() {
+  guntingServo.attach(servoGunting);
+}
+
+void guntingBuka(bool tutup) {
+  if (tutup) {
+    guntingServo.write(180);
+  } else {
+    guntingServo.write(0);
+  }
+}
+
 void setup() { //setting up all the pins, default output, etc
   pinMode(echoPin1, INPUT);
   pinMode(trigPin1, OUTPUT);
@@ -374,16 +388,4 @@ void motorGo(uint8_t motor, uint8_t direct, uint8_t pwm)         //Function that
       }
       analogWrite(PWM_MOTOR_3, pwm); 
       break;
-}
-
-void guntingSetup() {
-  guntingServo.attach(servoGunting);
-}
-
-void guntingBuka(bool tutup) {
-  if (tutup) {
-    guntingServo.write(180);
-  } else {
-    guntingServo.write(0);
-  }
 }

@@ -25,7 +25,7 @@ Servo guntingServo;
 int guntingPos = 0;
 
 // Servo pin
-int servoGunting = 11;
+int servoGunting = 0;
 
 void guntingSetup() {
   guntingServo.attach(servoGunting);

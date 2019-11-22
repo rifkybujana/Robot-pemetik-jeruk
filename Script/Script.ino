@@ -36,22 +36,22 @@ bool isJeruk;
 #define CCW   2
 #define CS_THRESHOLD 15
 
-#define MOTOR_A1_PIN_1 22 //INA
-#define MOTOR_B1_PIN_1 23 //INB
+#define MOTOR_A1_PIN1 22 //INA
+#define MOTOR_B1_PIN1 23 //INB
 #define PWM_MOTOR_1 24    //PMW
 #define CURRENT_SEN_1 A3  //CS
 #define EN_PIN_1 A0       //EN
 #define MOTOR_1 0
 
-#define MOTOR_A1_PIN_2 25 //INA
-#define MOTOR_B1_PIN_2 26 //INB
+#define MOTOR_A1_PIN2 25 //INA
+#define MOTOR_B1_PIN2 26 //INB
 #define PWM_MOTOR_2 27    //PMW
 #define CURRENT_SEN_2 A4  //CS
 #define EN_PIN_2 A1       //EN
 #define MOTOR_2 1
 
-#define MOTOR_A1_PIN_3 28 //INA
-#define MOTOR_B1_PIN_3 29 //INB
+#define MOTOR_A1_PIN3 28 //INA
+#define MOTOR_B1_PIN3 29 //INB
 #define PWM_MOTOR_3 30    //PMW
 #define CURRENT_SEN_3 A5  //CS
 #define EN_PIN_3 A2       //EN
@@ -139,6 +139,7 @@ void setup() { //setting up all the pins, default output, etc
 
   // Begins serial communication
   Serial.begin(9600);
+  motorGo(MOTOR_3, CW, usSpeed);
 }
 
 void loop() {
@@ -388,4 +389,5 @@ void motorGo(uint8_t motor, uint8_t direct, uint8_t pwm)         //Function that
       }
       analogWrite(PWM_MOTOR_3, pwm); 
       break;
+  }
 }

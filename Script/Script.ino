@@ -1,11 +1,3 @@
-//              //       //     _________                  ________      _______
-//             //       //          |          /\         /             /       \
-//          ==//=======//==         |         /  \       |             |         |
-//           //       //            |        /    \      |  ______     |         |
-//          //       //    |        |       /------\     |        \    |         |
-//       ==//=======//==    \       |      /        \    |         |   |         |
-//        //       //        \_____/      /          \    \_______/     \_______/
-
 //color sensor pin
 #define S0 4
 #define S1 5
@@ -70,43 +62,44 @@ int guntingPos = 0;
 // Servo pin
 int servoGunting = 11;
 
-// Pin sensor jarak depan
-#define echoPin1 14
-#define trigPin1 15
+//// Pin sensor jarak depan
+//#define echoPin1 14
+//#define trigPin1 15
+//
+//// Pin sensor jarak kanan
+//#define echoPin2 16
+//#define trigPin2 17
+//
+//// Pin sensor jarak kiri
+//#define echoPin3 18
+//#define trigPin3 19
+//
+//// Pin sensor jarak belakang
+//#define echoPin4 20
+//#define trigPin4 21
 
-// Pin sensor jarak kanan
-#define echoPin2 16
-#define trigPin2 17
-
-// Pin sensor jarak kiri
-#define echoPin3 18
-#define trigPin3 19
-
-// Pin sensor jarak belakang
-#define echoPin4 20
-#define trigPin4 21
-
-// Radius jarak maksimal yang dideteksi sebagai "Pohon/benda"
-int maxRange = 300;
-// Radius jarak minimal yang dideteksi sebagai "Pohon/benda" agar tidak terjadi benturan
-int minRange = 20;
-// Gelombang yang dikirim dan diterima oleh sensor
-long duration[4] = {0, 0, 0, 0};
-// Hasil perhitungan jarak berdasarkan hasil penerimaan gelombang oleh sensor
-long distance[4] = {0, 0, 0, 0};
+//// Radius jarak maksimal yang dideteksi sebagai "Pohon/benda"
+//int maxRange = 300;
+//// Radius jarak minimal yang dideteksi sebagai "Pohon/benda" agar tidak terjadi benturan
+//int minRange = 20;
+//// Gelombang yang dikirim dan diterima oleh sensor
+//long duration[4] = {0, 0, 0, 0};
+//// Hasil perhitungan jarak berdasarkan hasil penerimaan gelombang oleh sensor
+//long distance[4] = {0, 0, 0, 0};
 
 /* menentukan arah pohon (
       1 maju
       2 kanan
       3 kiri
       4 mundur   */
-int arahPohon;
+//int arahPohon;
 
-bool stopMaju;                                                    // berhenti maju?
-bool outOfRange[4] = {false, false, false, false};                // diluar jangkauan?
-bool objekDiKanan = false;                                        // ada objek di kanan?
+//bool stopMaju;                                                    // berhenti maju?
+//bool outOfRange[4] = {false, false, false, false};                // diluar jangkauan?
+//bool objekDiKanan = false;                                        // ada objek di kanan?
 
-
+int state;
+int flag = 0;
 
 void guntingSetup() {
   guntingServo.attach(servoGunting);
@@ -121,17 +114,17 @@ void guntingBuka(bool tutup) {
 }
 
 void setup() { //setting up all the pins, default output, etc
-  pinMode(echoPin1, INPUT);
-  pinMode(trigPin1, OUTPUT);
-
-  pinMode(echoPin2, INPUT);
-  pinMode(trigPin2, OUTPUT);
-
-  pinMode(echoPin3, INPUT);
-  pinMode(trigPin3, OUTPUT);
-
-  pinMode(echoPin4, INPUT);
-  pinMode(trigPin4, OUTPUT);
+//  pinMode(echoPin1, INPUT);
+//  pinMode(trigPin1, OUTPUT);
+//
+//  pinMode(echoPin2, INPUT);
+//  pinMode(trigPin2, OUTPUT);
+//
+//  pinMode(echoPin3, INPUT);
+//  pinMode(trigPin3, OUTPUT);
+//
+//  pinMode(echoPin4, INPUT);
+//  pinMode(trigPin4, OUTPUT);
 
   motorSetup();
   colorSetup();
@@ -144,8 +137,50 @@ void setup() { //setting up all the pins, default output, etc
 
 void loop() {
   getColor();                               // get the data from the color sensor
-  getRange();                               // get the data from the range sensor
+  //getRange();                               // get the data from the range sensor
   digitalWrite(EN_PIN_1, HIGH);
+
+  if(Serial.available() > 0){
+    state = Serial.read();
+    flag = 0;
+  }
+
+  if(state == '0'){
+    berhenti();
+
+    if(flag == 0){
+      Serial.println("Motor: off");
+      flag = 1;
+    }
+  }else if(state == '1'){
+    kanan();
+
+    if(flag = 0){
+      Serial.println("Motor: right");
+      flag = 1;
+    }
+  }else if(state == '2'){
+    kiri();
+
+    if(flag = 0){
+      Serial.println("Motor: left");
+      flag = 1;
+    }
+  }else if(state == '3'){
+    maju();
+
+    if(flag = 0){
+      Serial.println("Motor: maju");
+      flag = 1;
+    }
+  }else if(state == '4'){
+    mundur();
+
+    if(flag = 0){
+      Serial.println("Motor: mundur");
+      flag = 1;
+    }
+  }
   
   /*  1 maju
       2 kanan
@@ -153,78 +188,76 @@ void loop() {
       4 mundur
   */
 
-  switch(arahPohon){
-    case 1: 
-      maju();
-      if (stopMaju) { kiri(); } break;
-    case 2:          
-      kanan(); delay(300); maju();
-      if (stopMaju) { kiri(); } break;
-    case 3:
-      kiri(); delay(300); maju(); 
-      if (stopMaju) { kiri(); } break;
-    case 4:
-      mundur(); 
-      if (stopMaju) { kanan(); } break;
-    default: berhenti();
-  }
-
-  if (objekDiKanan) {
-    maju();
-  } else if (!objekDiKanan) {
-    berhenti();
-  } 
+//  switch(arahPohon){
+//    case 1: 
+//      maju();
+//      if (stopMaju) { kiri(); } break;
+//    case 2:          
+//      kanan(); delay(300); maju();
+//      if (stopMaju) { kiri(); } break;
+//    case 3:
+//      kiri(); delay(300); maju(); 
+//      if (stopMaju) { kiri(); } break;
+//    case 4:
+//      mundur(); 
+//      if (stopMaju) { kanan(); } break;
+//    default: berhenti();
+//  }
+//
+//  if (objekDiKanan) {
+//    maju();
+//  } else if (!objekDiKanan) {
+//    berhenti();
+//  } 
 
   if (isJeruk) {                      // jika mendeteksi jeruk
-    berhenti();                       // berhenti
-    delay(300);                       // delay 0.3 detik
     guntingBuka(false);               // membuka mulut gunting
     delay(1000);                      // delay 1 detik
     guntingBuka(true);                // menutup mulut gunting
   }
 }
 
-void getRange() { // S = 340.t/2
-  digitalWrite(trigPin1, LOW); delayMicroseconds(2);
-  digitalWrite(trigPin1, HIGH); delayMicroseconds(10);
-  digitalWrite(trigPin1, LOW);
-  duration[0] = pulseIn(echoPin1, HIGH);
-  distance[0] = duration[0] / 58.2;
-
-  digitalWrite(trigPin2, LOW); delayMicroseconds(2);
-  digitalWrite(trigPin2, HIGH); delayMicroseconds(10);
-  digitalWrite(trigPin2, LOW);
-  duration[1] = pulseIn(echoPin2, HIGH);
-  distance[1] = duration[1] / 58.2;
-
-  digitalWrite(trigPin3, LOW); delayMicroseconds(2);
-  digitalWrite(trigPin3, HIGH); delayMicroseconds(10);
-  digitalWrite(trigPin3, LOW);
-  duration[2] = pulseIn(echoPin3, HIGH);
-  distance[2] = duration[2] / 58.2;
-
-  digitalWrite(trigPin4, LOW); delayMicroseconds(2);
-  digitalWrite(trigPin4, HIGH); delayMicroseconds(10);
-  digitalWrite(trigPin4, LOW);
-  duration[3] = pulseIn(echoPin4, HIGH);
-  distance[3] = duration[3] / 58.2;
-
-  for (int i = 0; i <= 3; i++) {
-    if (distance[i] <= maxRange && distance[i] > minRange) {
-      arahPohon = i + 1;
-      stopMaju = false;
-    } else if (distance[i] > maxRange) {
-      outOfRange[i] = true;
-      stopMaju = true;
-    }
-  }
-
-  if (distance[1] <= minRange) {
-    objekDiKanan = true;
-  } else {
-    objekDiKanan = false;
-  }
-}
+//void getRange() { // S = 340.t/2
+//  digitalWrite(trigPin1, LOW); delayMicroseconds(2);
+//  digitalWrite(trigPin1, HIGH); delayMicroseconds(10);
+//  digitalWrite(trigPin1, LOW);
+//  duration[0] = pulseIn(echoPin1, HIGH);
+//  distance[0] = duration[0] / 58.2;
+//
+//  digitalWrite(trigPin2, LOW); delayMicroseconds(2);
+//  digitalWrite(trigPin2, HIGH); delayMicroseconds(10);
+//  digitalWrite(trigPin2, LOW);
+//  duration[1] = pulseIn(echoPin2, HIGH);
+//  distance[1] = duration[1] / 58.2;
+//
+//  digitalWrite(trigPin3, LOW); delayMicroseconds(2);
+//  digitalWrite(trigPin3, HIGH); delayMicroseconds(10);
+//  digitalWrite(trigPin3, LOW);
+//  duration[2] = pulseIn(echoPin3, HIGH);
+//  distance[2] = duration[2] / 58.2;
+//
+//  digitalWrite(trigPin4, LOW); delayMicroseconds(2);
+//  digitalWrite(trigPin4, HIGH); delayMicroseconds(10);
+//  digitalWrite(trigPin4, LOW);
+//  duration[3] = pulseIn(echoPin4, HIGH);
+//  distance[3] = duration[3] / 58.2;
+//
+//  for (int i = 0; i <= 3; i++) {
+//    if (distance[i] <= maxRange && distance[i] > minRange) {
+//      arahPohon = i + 1;
+//      stopMaju = false;
+//    } else if (distance[i] > maxRange) {
+//      outOfRange[i] = true;
+//      stopMaju = true;
+//    }
+//  }
+//
+//  if (distance[1] <= minRange) {
+//    objekDiKanan = true;
+//  } else {
+//    objekDiKanan = false;
+//  }
+//}
 
 void getColor() {
   // Setting RED (R) filtered photodiodes to be read
@@ -236,11 +269,6 @@ void getColor() {
   // Remaping the value of the RED (R) frequency from 0 to 255
   redColor = map(redFrequency, 65, 762, 255, 0);
 
-  // Printing the RED (R) value
-  Serial.print("R = ");
-  Serial.print(redColor);
-  delay(100);
-
   // Setting GREEN (G) filtered photodiodes to be read
   digitalWrite(S2, HIGH);
   digitalWrite(S3, HIGH);
@@ -249,11 +277,6 @@ void getColor() {
   greenFrequency = pulseIn(sensorOut, LOW);
   // Remaping the value of the GREEN (G) frequency from 0 to 255
   greenColor = map(greenFrequency, 108, 2054, 255, 0);
-
-  // Printing the GREEN (G) value
-  Serial.print(" G = ");
-  Serial.print(greenColor);
-  delay(100);
 
   // Setting BLUE (B) filtered photodiodes to be read
   digitalWrite(S2, LOW);
@@ -266,11 +289,6 @@ void getColor() {
   blueFrequency = pulseIn(sensorOut, LOW);
   // Remaping the value of the BLUE (B) frequency from 0 to 255
   blueColor = map(blueFrequency, 96, 879, 255, 0);
-
-  // Printing the BLUE (B) value
-  Serial.print(" B = ");
-  Serial.println(blueColor);
-  delay(100);
 
   if (redColor > RGBJeruk[0] - radiusJeruk && redColor < RGBJeruk[0] + radiusJeruk) {
     if (greenColor > RGBJeruk[1] - radiusJeruk && greenColor < RGBJeruk[1] + radiusJeruk) {
